@@ -171,13 +171,6 @@ CHANNEL_LAYERS = {
     },
 }
 
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels.layers.InMemoryChannelLayer",
-#     },
-# }
-
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

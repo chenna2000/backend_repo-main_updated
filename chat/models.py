@@ -1,7 +1,6 @@
 from django.db import models # type: ignore
 from django.utils.timezone import now # type: ignore
 
-
 class Message(models.Model):
     sender_email = models.EmailField()
     recipient_email = models.EmailField()
@@ -12,6 +11,7 @@ class Message(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     attachments = models.ManyToManyField('MessageAttachment', related_name='messages', blank=True)
     is_read = models.BooleanField(default=False)
+    email_sent = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Message from {self.sender_email} to {self.recipient_email} on {self.timestamp}"

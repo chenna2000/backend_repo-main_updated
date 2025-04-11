@@ -10,7 +10,7 @@ from datetime import datetime
 # # Path to the service account key file
 # SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, 'collegecue-910d0-firebase-adminsdk-bvx8y-971424b217.json')
 
-SERVICE_ACCOUNT_FILE = "D:\\BHARATHTECH TASKS\\collegecue-backend-firebase-adminsdk-6yxp4-88338a40c4.json"
+SERVICE_ACCOUNT_FILE = "D:\\BHARATHTECH TASKS\\collegcue-firebase-adminsdk-p63yc-498e419897.json"
 
 
 # Define the scope

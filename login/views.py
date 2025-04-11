@@ -56,6 +56,30 @@ class Register(View):
             if not password:
                 return JsonResponse({'error': 'Please enter password'}, status=400)
 
+            errors = {}
+
+            existing_user = new_user.objects.filter(email=email).first()
+            if existing_user:
+                if existing_user.firstname != first_name or existing_user.lastname != last_name:
+
+                    errors['email'] = 'Email already registered with different name'
+                else:
+                    errors['email'] = 'Email already registered'
+
+            if new_user.objects.filter(country_code=country_code, phonenumber=phone_number).exists():
+                errors['phonenumber'] = 'Phone number already registered'
+
+            def has_two_unique_chars(value):
+                return len(set(value.replace(" ", "").lower())) >= 2
+
+            if '@' in email:
+                email_username = email.split('@')[0]
+                if not has_two_unique_chars(email_username):
+                    errors['email'] = 'Email must contain at least 2 unique characters before @'
+
+            if errors:
+                return JsonResponse({'error': errors}, status=400)
+
             hashed_password = make_password(password)
             send_data_to_google_sheets(first_name, last_name, email, country_code, phone_number, hashed_password, "Sheet1")
             return JsonResponse({'message': 'go to next page'})
@@ -64,6 +88,7 @@ class Register(View):
             return JsonResponse({'error': 'Invalid JSON format'}, status=400)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Next(View):
@@ -416,7 +441,6 @@ class DeleteUserAccountView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class RegisterCompanyInChargeView(View):
     def post(self, request):
@@ -424,6 +448,33 @@ class RegisterCompanyInChargeView(View):
             data = json.loads(request.body.decode('utf-8'))
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'errors': 'Invalid JSON'}, status=400)
+
+        email = data.get('official_email')
+        phone = data.get('mobile_number')
+        company_name = data.get('company_name')  # For name comparison
+
+        errors = {}
+
+        existing_company = CompanyInCharge.objects.filter(official_email=email).first()
+        if existing_company:
+            if existing_company.company_name != company_name:
+                errors['official_email'] = 'Email already registered with different company name'
+            else:
+                errors['official_email'] = 'Email already registered'
+
+        if CompanyInCharge.objects.filter(mobile_number=phone).exists():
+            errors['mobile_number'] = 'Mobile number already in use'
+
+        def has_two_unique_chars(value):
+            return len(set(value.replace(" ", "").lower())) >= 2
+
+        if email:
+            email_username = email.split('@')[0]
+            if not has_two_unique_chars(email_username):
+                errors['official_email'] = 'Email username must contain at least 2 unique characters'
+
+        if errors:
+            return JsonResponse({'success': False, 'errors': errors}, status=400)
 
         form = CompanyInChargeForm(data)
         if form.is_valid():
@@ -461,6 +512,7 @@ class RegisterCompanyInChargeView(View):
             errors = dict(form.errors.items())
             return JsonResponse({'success': False, 'errors': errors}, status=400)
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class RegisterConsultantView(View):
     def post(self, request):
@@ -468,6 +520,34 @@ class RegisterConsultantView(View):
             data = json.loads(request.body.decode('utf-8'))
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'errors': 'Invalid JSON'}, status=400)
+        
+        email = data.get('official_email')
+        phone = data.get('mobile_number')
+        consultant_name = data.get('consultant_name')
+
+        errors = {}
+
+        existing_consultant = Consultant.objects.filter(official_email=email).first()
+
+        if existing_consultant:
+            if existing_consultant.consultant_name != consultant_name:
+                errors['official_email'] = 'Email already registered with different consultant name'
+            else:
+                errors['official_email'] = 'Email already registered'
+
+        if Consultant.objects.filter(mobile_number=phone).exists():
+            errors['mobile_number'] = 'Mobile number already in use'
+
+        def has_two_unique_chars(value):
+            return len(set(value.replace(" ", "").lower())) >= 2
+
+        if email:
+            email_username = email.split('@')[0]
+            if not has_two_unique_chars(email_username):
+                errors['official_email'] = 'Email username must contain at least 2 unique characters'
+
+        if errors:
+            return JsonResponse({'success': False, 'errors': errors}, status=400)
 
         form = ConsultantForm(data)
         if form.is_valid():
@@ -505,15 +585,43 @@ class RegisterConsultantView(View):
             errors = dict(form.errors.items())
             return JsonResponse({'success': False, 'errors': errors}, status=400)
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class RegisterJobSeekerView(View):
     def post(self, request):
         try:
             data = json.loads(request.body.decode('utf-8'))
-            # print(data)
-            # print("agreed_to_terms => ", data.get('agreed_to_terms'))
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'errors': 'Invalid JSON'}, status=400)
+
+        email = data.get('email')
+        phone = data.get('mobile_number')
+        country_code = data.get('country_code', '')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+
+        errors = {}
+
+        existing_seeker = JobSeeker.objects.filter(email=email).first()
+        if existing_seeker:
+            if existing_seeker.first_name != first_name or existing_seeker.last_name != last_name:
+                errors['email'] = 'Email already registered with different name'
+            else:
+                errors['email'] = 'Email already registered'
+
+        if JobSeeker.objects.filter(country_code=country_code, mobile_number=phone).exists():
+            errors['mobile_number'] = 'Mobile number already in use'
+
+        def has_two_unique_chars(value):
+            return len(set(value.replace(" ", "").lower())) >= 2
+
+        if email:
+            email_username = email.split('@')[0]
+            if not has_two_unique_chars(email_username):
+                errors['email'] = 'Email username must contain at least 2 unique characters'
+
+        if errors:
+            return JsonResponse({'success': False, 'errors': errors}, status=400)
 
         form = JobSeekerRegistrationForm(data)
         if form.is_valid():
@@ -545,12 +653,13 @@ class RegisterJobSeekerView(View):
             Collegecue
             Support Team
             '''
-            email = EmailMessage(subject, message, sender_email, recipient_email)
-            email.send()
+            email_msg = EmailMessage(subject, message, sender_email, recipient_email)
+            email_msg.send()
 
             return JsonResponse({'success': True, 'message': 'Registration successful'}, status=201)
 
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
 
 
 # @csrf_protect
@@ -2052,12 +2161,38 @@ class RegisterUniversityInChargeView(View):
     def post(self, request):
         try:
             data = json.loads(request.body.decode('utf-8'))
-            print("Data => ", data)
+            # print("Data => ", data)
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'errors': 'Invalid JSON'}, status=400)
+        
+        email = data.get('official_email')
+        phone = data.get('mobile_number')
+        university_name = data.get('university_name')
+
+        errors = {}
+
+        existing_uni = UniversityInCharge.objects.filter(official_email=email).first()
+        if existing_uni:
+            if existing_uni.university_name != university_name:
+                errors['official_email'] = 'Email already registered with different university name'
+            else:
+                errors['official_email'] = 'Email already registered'
+
+        if UniversityInCharge.objects.filter(mobile_number=phone).exists():
+            errors['mobile_number'] = 'Mobile number already in use'
+
+        def has_two_unique_chars(value):
+            return len(set(value.replace(" ", "").lower())) >= 2
+
+        if email:
+            email_username = email.split('@')[0]
+            if not has_two_unique_chars(email_username):
+                errors['official_email'] = 'Email username must contain at least 2 unique characters'
+
+        if errors:
+            return JsonResponse({'success': False, 'errors': errors}, status=400)
 
         college_id = data.get('university_id')
-        print("College Id => ", college_id)
 
         university_form = UniversityInChargeForm(data)
         if university_form.is_valid():
@@ -2078,7 +2213,6 @@ class RegisterUniversityInChargeView(View):
                 "Sheet3"
             )
 
-            # Send confirmation email
             sender_email = settings.EMAIL_HOST_USER
             recipient_email = [university.official_email]
             subject = 'Confirmation Mail'
@@ -2106,15 +2240,15 @@ class RegisterUniversityInChargeView(View):
 
             if college:
                 send_data_to_google_sheet6(
-                   college.university_name,
-                   college.official_email,
-                   college.country_code,
-                   college.mobile_number,
-                   college.password,
-                   college.linkedin_profile,
-                   college.college_person_name,
-                   college.agreed_to_terms,
-                   "Sheet6"
+                    college.university_name,
+                    college.official_email,
+                    college.country_code,
+                    college.mobile_number,
+                    college.password,
+                    college.linkedin_profile,
+                    college.college_person_name,
+                    college.agreed_to_terms,
+                    "Sheet6"
                 )
 
             return JsonResponse({'success': True, 'message': 'Registration successful'})
@@ -2122,6 +2256,5 @@ class RegisterUniversityInChargeView(View):
         else:
             errors = dict(university_form.errors.items())
             return JsonResponse({'success': False, 'errors': errors}, status=400)
-
 
 
