@@ -27,20 +27,22 @@ class new_user(models.Model):
     ]
 
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='student')
-    firstname=models.CharField(max_length=20)
-    lastname=models.CharField(max_length=20)
-    country_code=models.CharField(max_length=5,default='IN')
-    phonenumber=models.CharField(max_length=10)
-    email=models.EmailField()
-    password=models.CharField(max_length=100)
-    course=models.CharField(max_length=50,default='B-Tech')
-    educations=models.CharField(max_length=20,default='Not specified')
-    percentage=models.CharField(max_length=10,default='0')
-    preferred_destination=models.CharField(max_length=20,default='Not specified')
+    firstname = models.CharField(max_length=20)
+    lastname = models.CharField(max_length=20)
+    country_code = models.CharField(max_length=5, default='IN')
+    phonenumber = models.CharField(max_length=10)
+    gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other')], default='other')
+    email = models.EmailField()
+    password = models.CharField(max_length=100)
+    confirm_password = models.CharField(max_length=100,null=True, blank=True)
+    course = models.CharField(max_length=50, default='B-Tech')
+    educations = models.CharField(max_length=20, default='Not specified')
+    percentage = models.CharField(max_length=10, default='0')
+    preferred_destination = models.CharField(max_length=20, default='Not specified')
     start_date = models.CharField(max_length=4)
-    entrance=models.CharField(max_length=5,default='N/A')
-    passport=models.CharField(max_length=5,default='None')
-    mode_study=models.CharField(max_length=20,default='None')
+    entrance = models.CharField(max_length=5, default='N/A')
+    passport = models.CharField(max_length=5, default='None')
+    mode_study = models.CharField(max_length=20, default='None')
     job_experience = models.CharField(max_length=100, blank=True, null=True)
     desired_job_title = models.CharField(max_length=100, blank=True, null=True)
     token = models.CharField(max_length=255, blank=True, null=True)
@@ -53,57 +55,44 @@ class Meta:
     db_table="collegecuefinal_data"
 
 class CompanyInCharge(models.Model):
-    # user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     company_name = models.CharField(max_length=255,default="null")
     official_email = models.EmailField(unique=True,default="Null")
     country_code = models.CharField(max_length=3, default='+91')
     mobile_number = models.CharField(max_length=15,default="Null")
+    designation = models.CharField(max_length=100, default="Null")
     password = models.CharField(max_length=128,default="null")
+    confirm_password = models.CharField(max_length=128, default="null")
     linkedin_profile = models.URLField(blank=True, null=True)
     company_person_name = models.CharField(max_length=255,default="Null")
     agreed_to_terms = models.BooleanField(default=True)
     token = models.CharField(max_length=255, blank=True, null=True)
     is_online = models.BooleanField(default=False)
-    # otp_code = models.CharField(max_length=6, blank=True, null=True)
-    # otp_generated_at = models.DateTimeField(blank=True, null=True)
-
-    # def is_otp_valid(self):
-    #     if self.otp_generated_at:
-    #         return now() <= self.otp_generated_at + timedelta(minutes=10)
-    #     return False
-
 
 
 class UniversityInCharge(models.Model):
-    # user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     clg_id = models.CharField(max_length=400, default="Null", blank=True, null=True)
     university_name = models.CharField(max_length=255)
     official_email = models.EmailField(unique=True,default="Null")
     country_code = models.CharField(max_length=3, default='+91')
     mobile_number = models.CharField(max_length=15,default="Null")
+    designation = models.CharField(max_length=100, default="Null")
     password = models.CharField(max_length=128,default="null")
     linkedin_profile = models.URLField(blank=True, null=True)
+    confirm_password = models.CharField(max_length=128, default="null")
     college_person_name = models.CharField(max_length=255,default="Null")
     agreed_to_terms = models.BooleanField(default=True)
     token = models.CharField(max_length=255, blank=True, null=True)
     is_online = models.BooleanField(default=False)
-    # trimmed_university_name = models.CharField(max_length=255, default='N/A')
-    # otp_code = models.CharField(max_length=6, blank=True, null=True)
-    # otp_generated_at = models.DateTimeField(blank=True, null=True)
-
-    # def is_otp_valid(self):
-    #     if self.otp_generated_at:
-    #         return now() <= self.otp_generated_at + timedelta(minutes=10)
-    #     return False
 
 
 class Consultant(models.Model):
-    # user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     consultant_name = models.CharField(max_length=255,default="Null")
     official_email = models.EmailField(unique=True,default="Null")
     country_code = models.CharField(max_length=3, default='+91')
     mobile_number = models.CharField(max_length=15,default="Null")
+    designation = models.CharField(max_length=100, default="Null")
     password = models.CharField(max_length=128,default="null")
+    confirm_password = models.CharField(max_length=128, default="null")
     linkedin_profile = models.URLField(blank=True, null=True)
     consultant_person_name = models.CharField(max_length=255,default="Null")
     agreed_to_terms = models.BooleanField(default=True)
@@ -140,14 +129,6 @@ class JobSeeker(models.Model):
     token = models.CharField(max_length=255, blank=True, null=True)
     agreed_to_terms = models.BooleanField(default=True)
     is_online = models.BooleanField(default=False)
-    # otp_code = models.CharField(max_length=6, blank=True, null=True)
-    # otp_generated_at = models.DateTimeField(blank=True, null=True)
-
-    # def is_otp_valid(self):
-    #     if self.otp_generated_at:
-    #         return now() <= self.otp_generated_at + timedelta(minutes=10)
-    #     return False
-
 
     def __str__(self):
       return f"{self.first_name} {self.last_name}"
@@ -165,7 +146,6 @@ class Contact(models.Model):
     
 class Question(models.Model):
     text = models.TextField()
-    # answer = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -208,15 +188,12 @@ class AdmissionReview1(models.Model):
     fees_structure_scholarship = models.TextField()
     liked_things = models.TextField()
     disliked_things = models.TextField()
-
-    # File fields instead of URL fields
     profile_photo = models.FileField(upload_to='uploads/profile_photos/', blank=True, null=True)
     campus_photos = models.FileField(upload_to='uploads/campus_photos/', blank=True, null=True)
     certificate_id_card = models.FileField(upload_to='uploads/certificates/', blank=True, null=True)
     graduation_certificate = models.FileField(upload_to='uploads/graduation_certificates/', blank=True, null=True)
-
-
     agree_terms = models.BooleanField(default=True)
+
     
 class UnregisteredColleges(models.Model):
     university_name = models.CharField(max_length=255)

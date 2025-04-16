@@ -38,6 +38,57 @@ def get_csrf_token(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class Register(View):
+#     def post(self, request):
+#         try:
+#             data = json.loads(request.body.decode('utf-8'))
+
+#             first_name = data.get('firstname')
+#             last_name = data.get('lastname')
+#             email = data.get('email')
+#             country_code = data.get('country_code')
+#             phone_number = data.get('phonenumber')
+#             password = data.get('password')
+
+#             if not email:
+#                 return JsonResponse({'error': 'Please enter a correct email id'}, status=400)
+#             if not password:
+#                 return JsonResponse({'error': 'Please enter password'}, status=400)
+
+#             errors = {}
+
+#             existing_user = new_user.objects.filter(email=email).first()
+#             if existing_user:
+#                 if existing_user.firstname != first_name or existing_user.lastname != last_name:
+
+#                     errors['email'] = 'Email already registered with different name'
+#                 else:
+#                     errors['email'] = 'Email already registered'
+
+#             if new_user.objects.filter(country_code=country_code, phonenumber=phone_number).exists():
+#                 errors['phonenumber'] = 'Phone number already registered'
+
+#             def has_two_unique_chars(value):
+#                 return len(set(value.replace(" ", "").lower())) >= 2
+
+#             if '@' in email:
+#                 email_username = email.split('@')[0]
+#                 if not has_two_unique_chars(email_username):
+#                     errors['email'] = 'Email must contain at least 2 unique characters before @'
+
+#             if errors:
+#                 return JsonResponse({'error': errors}, status=400)
+
+#             hashed_password = make_password(password)
+#             send_data_to_google_sheets(first_name, last_name, email, country_code, phone_number, hashed_password, "Sheet1")
+#             return JsonResponse({'message': 'go to next page'})
+
+#         except json.JSONDecodeError:
+#             return JsonResponse({'error': 'Invalid JSON format'}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class Register(View):
     def post(self, request):
@@ -50,19 +101,23 @@ class Register(View):
             country_code = data.get('country_code')
             phone_number = data.get('phonenumber')
             password = data.get('password')
+            confirm_password = data.get('confirm_password')
+            gender = data.get('gender')
+            agreed_to_terms = data.get('agreed_to_terms')
 
             if not email:
                 return JsonResponse({'error': 'Please enter a correct email id'}, status=400)
             if not password:
                 return JsonResponse({'error': 'Please enter password'}, status=400)
+            if confirm_password != password:
+                return JsonResponse({'error': 'Passwords do not match'}, status=400)
 
             errors = {}
 
             existing_user = new_user.objects.filter(email=email).first()
             if existing_user:
                 if existing_user.firstname != first_name or existing_user.lastname != last_name:
-
-                    errors['email'] = 'Email already registered with different name'
+                    errors['email'] = 'Email already registered with a different name'
                 else:
                     errors['email'] = 'Email already registered'
 
@@ -81,14 +136,66 @@ class Register(View):
                 return JsonResponse({'error': errors}, status=400)
 
             hashed_password = make_password(password)
-            send_data_to_google_sheets(first_name, last_name, email, country_code, phone_number, hashed_password, "Sheet1")
-            return JsonResponse({'message': 'go to next page'})
+            hashed_password1 = make_password(confirm_password)		
+            send_data_to_google_sheets(first_name, last_name, email, country_code, phone_number,gender, hashed_password, hashed_password1, agreed_to_terms, "Sheet1")
+
+            return JsonResponse({'message': 'Go to the next page.'})
 
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON format'}, status=400)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+
+
+# @method_decorator(csrf_exempt, name='dispatch')
+# class Next(View):
+#     def post(self, request):
+#         try:
+#             data = json.loads(request.body.decode('utf-8'))
+#         except json.JSONDecodeError:
+#             return JsonResponse({'success': False, 'errors': {'json': 'Invalid JSON'}}, status=400)
+
+#         first_name = data.get('firstname')
+#         last_name = data.get('lastname')
+#         email = data.get('email')
+#         password = data.get('password')
+#         course = data.get('course')
+#         education = data.get('education')
+#         percentage = data.get('percentage')
+#         preferred_destination = data.get('preferred_destination')
+#         start_date = data.get('start_date')
+#         mode_study = data.get('mode_study')
+#         entrance_exam = data.get('entrance')
+#         passport = data.get('passport')
+#         country_code = data.get('country_code')
+#         phone_number = data.get('phonenumber')
+
+#         errors = {}
+#         if not entrance_exam:
+#             errors['entrance'] = 'Check box not clicked'
+#         if not passport:
+#             errors['passport'] = 'Check box not clicked'
+#         if errors:
+#             return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+#         try:
+#             new_password = make_password(password)
+#             try:
+#                 us = new_user(
+#                     firstname=first_name, lastname=last_name, email=email,
+#                     country_code=country_code, phonenumber=phone_number,
+#                     password=new_password, course=course, educations=education,
+#                     percentage=percentage, preferred_destination=preferred_destination,
+#                     start_date=start_date, mode_study=mode_study,
+#                     entrance=entrance_exam, passport=passport
+#                 )
+#                 us.save()
+#                 return JsonResponse({'message': 'Registration successful'})
+#             except Exception as e:
+#                 return JsonResponse({'success': False, 'errors': {'server': str(e)}}, status=500)
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'errors': {'password': str(e)}}, status=500)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Next(View):
@@ -102,6 +209,8 @@ class Next(View):
         last_name = data.get('lastname')
         email = data.get('email')
         password = data.get('password')
+        confirm_password = data.get('confirm_password')
+        gender = data.get('gender')
         course = data.get('course')
         education = data.get('education')
         percentage = data.get('percentage')
@@ -114,23 +223,42 @@ class Next(View):
         phone_number = data.get('phonenumber')
 
         errors = {}
+        
+        if password != confirm_password:
+            errors['password'] = 'Passwords do not match'
+
         if not entrance_exam:
             errors['entrance'] = 'Check box not clicked'
         if not passport:
             errors['passport'] = 'Check box not clicked'
+
         if errors:
             return JsonResponse({'success': False, 'errors': errors}, status=400)
 
         try:
             new_password = make_password(password)
+
+            new_password1 = make_password(confirm_password)
+
+
             try:
                 us = new_user(
-                    firstname=first_name, lastname=last_name, email=email,
-                    country_code=country_code, phonenumber=phone_number,
-                    password=new_password, course=course, educations=education,
-                    percentage=percentage, preferred_destination=preferred_destination,
-                    start_date=start_date, mode_study=mode_study,
-                    entrance=entrance_exam, passport=passport
+                    firstname=first_name,
+                    lastname=last_name,
+                    email=email,
+                    country_code=country_code,
+                    phonenumber=phone_number,
+                    password=new_password,
+                    confirm_password=new_password1,
+                    course=course,
+                    educations=education,
+                    percentage=percentage,
+                    preferred_destination=preferred_destination,
+                    start_date=start_date,
+                    mode_study=mode_study,
+                    entrance=entrance_exam,
+                    passport=passport,
+                    gender=gender
                 )
                 us.save()
                 return JsonResponse({'message': 'Registration successful'})
@@ -138,6 +266,7 @@ class Next(View):
                 return JsonResponse({'success': False, 'errors': {'server': str(e)}}, status=500)
         except Exception as e:
             return JsonResponse({'success': False, 'errors': {'password': str(e)}}, status=500)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Login(View):
@@ -441,6 +570,77 @@ class DeleteUserAccountView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class RegisterCompanyInChargeView(View):
+#     def post(self, request):
+#         try:
+#             data = json.loads(request.body.decode('utf-8'))
+#         except json.JSONDecodeError:
+#             return JsonResponse({'success': False, 'errors': 'Invalid JSON'}, status=400)
+
+#         email = data.get('official_email')
+#         phone = data.get('mobile_number')
+#         company_name = data.get('company_name')
+
+#         errors = {}
+
+#         existing_company = CompanyInCharge.objects.filter(official_email=email).first()
+#         if existing_company:
+#             if existing_company.company_name != company_name:
+#                 errors['official_email'] = 'Email already registered with different company name'
+#             else:
+#                 errors['official_email'] = 'Email already registered'
+
+#         if CompanyInCharge.objects.filter(mobile_number=phone).exists():
+#             errors['mobile_number'] = 'Mobile number already in use'
+
+#         def has_two_unique_chars(value):
+#             return len(set(value.replace(" ", "").lower())) >= 2
+
+#         if email:
+#             email_username = email.split('@')[0]
+#             if not has_two_unique_chars(email_username):
+#                 errors['official_email'] = 'Email username must contain at least 2 unique characters'
+
+#         if errors:
+#             return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+#         form = CompanyInChargeForm(data)
+#         if form.is_valid():
+#             company = form.save(commit=False)
+#             company.password = make_password(company.password)
+#             company.save()
+#             send_data_to_google_sheet2(
+#                 company.company_name,
+#                 company.official_email,
+#                 company.country_code,
+#                 company.mobile_number,
+#                 company.password,
+#                 company.linkedin_profile,
+#                 company.company_person_name,
+#                 company.agreed_to_terms,
+#                 "Sheet2"
+#             )
+#             sender_email = settings.EMAIL_HOST_USER
+#             recipient_email = [company.official_email]
+#             subject = 'Confirmation Mail'
+#             message = '''Dear User,
+
+#             Thank you for your registration.
+
+#             If you have any questions or need further assistance, please don't hesitate to contact our support team.
+
+#             Best regards,
+#             Collegecue
+#             Support Team
+#             '''
+#             email = EmailMessage(subject, message, sender_email, recipient_email)
+#             email.send()
+#             return JsonResponse({'success': True, 'message': 'Registration successful'})
+#         else:
+#             errors = dict(form.errors.items())
+#             return JsonResponse({'success': False, 'errors': errors}, status=400)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class RegisterCompanyInChargeView(View):
     def post(self, request):
@@ -451,7 +651,9 @@ class RegisterCompanyInChargeView(View):
 
         email = data.get('official_email')
         phone = data.get('mobile_number')
-        company_name = data.get('company_name')  # For name comparison
+        company_name = data.get('company_name')
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
 
         errors = {}
 
@@ -473,6 +675,9 @@ class RegisterCompanyInChargeView(View):
             if not has_two_unique_chars(email_username):
                 errors['official_email'] = 'Email username must contain at least 2 unique characters'
 
+        if password != confirm_password:
+            errors['confirm_password'] = 'Passwords do not match'
+
         if errors:
             return JsonResponse({'success': False, 'errors': errors}, status=400)
 
@@ -480,18 +685,23 @@ class RegisterCompanyInChargeView(View):
         if form.is_valid():
             company = form.save(commit=False)
             company.password = make_password(company.password)
+            company.confirm_password = make_password(company.confirm_password)
             company.save()
+
             send_data_to_google_sheet2(
                 company.company_name,
                 company.official_email,
                 company.country_code,
                 company.mobile_number,
+                company.designation,
                 company.password,
+                company.confirm_password,
                 company.linkedin_profile,
                 company.company_person_name,
                 company.agreed_to_terms,
                 "Sheet2"
             )
+
             sender_email = settings.EMAIL_HOST_USER
             recipient_email = [company.official_email]
             subject = 'Confirmation Mail'
@@ -501,12 +711,13 @@ class RegisterCompanyInChargeView(View):
 
             If you have any questions or need further assistance, please don't hesitate to contact our support team.
 
-            Best regards,
-            Collegecue
+            Best regards,  
+            Collegecue  
             Support Team
             '''
             email = EmailMessage(subject, message, sender_email, recipient_email)
             email.send()
+
             return JsonResponse({'success': True, 'message': 'Registration successful'})
         else:
             errors = dict(form.errors.items())
@@ -524,6 +735,8 @@ class RegisterConsultantView(View):
         email = data.get('official_email')
         phone = data.get('mobile_number')
         consultant_name = data.get('consultant_name')
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
 
         errors = {}
 
@@ -546,6 +759,9 @@ class RegisterConsultantView(View):
             if not has_two_unique_chars(email_username):
                 errors['official_email'] = 'Email username must contain at least 2 unique characters'
 
+        if password != confirm_password:
+            errors['confirm_password'] = 'Passwords do not match'
+
         if errors:
             return JsonResponse({'success': False, 'errors': errors}, status=400)
 
@@ -553,13 +769,16 @@ class RegisterConsultantView(View):
         if form.is_valid():
             consultant = form.save(commit=False)
             consultant.password = make_password(consultant.password)
+            consultant.confirm_password = make_password(consultant.confirm_password)
             consultant.save()
             send_data_to_google_sheet4(
                 consultant.consultant_name,
                 consultant.official_email,
                 consultant.country_code,
                 consultant.mobile_number,
+                consultant.designation,
                 consultant.password,
+                consultant.confirm_password,
                 consultant.linkedin_profile,
                 consultant.consultant_person_name,
                 consultant.agreed_to_terms,
@@ -659,8 +878,6 @@ class RegisterJobSeekerView(View):
             return JsonResponse({'success': True, 'message': 'Registration successful'}, status=201)
 
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
-
-
 
 # @csrf_protect
 # def search(request):
@@ -2168,6 +2385,9 @@ class RegisterUniversityInChargeView(View):
         email = data.get('official_email')
         phone = data.get('mobile_number')
         university_name = data.get('university_name')
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
+
 
         errors = {}
 
@@ -2189,6 +2409,9 @@ class RegisterUniversityInChargeView(View):
             if not has_two_unique_chars(email_username):
                 errors['official_email'] = 'Email username must contain at least 2 unique characters'
 
+        if password != confirm_password:
+            errors['confirm_password'] = 'Passwords do not match'
+
         if errors:
             return JsonResponse({'success': False, 'errors': errors}, status=400)
 
@@ -2198,6 +2421,7 @@ class RegisterUniversityInChargeView(View):
         if university_form.is_valid():
             university = university_form.save(commit=False)
             university.password = make_password(university.password)
+            university.confirm_password = make_password(university.confirm_password)
             university.clg_id = college_id
             university.save()
 
@@ -2206,7 +2430,9 @@ class RegisterUniversityInChargeView(View):
                 university.official_email,
                 university.country_code,
                 university.mobile_number,
+                university.designation,
                 university.password,
+                university.confirm_password,
                 university.linkedin_profile,
                 university.college_person_name,
                 university.agreed_to_terms,
@@ -2256,5 +2482,3 @@ class RegisterUniversityInChargeView(View):
         else:
             errors = dict(university_form.errors.items())
             return JsonResponse({'success': False, 'errors': errors}, status=400)
-
-

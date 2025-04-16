@@ -35,13 +35,13 @@ def create_subadmin(username, password):
 def is_superadmin(user):
     return user.is_superuser 
 
-def send_data_to_google_sheets(first_name, last_name, email, country_code, phone_number, password, sheetname):
+def send_data_to_google_sheets(first_name, last_name, email, country_code, phone_number, gender, password, confirm_password, agreed_to_terms, sheetname):
     if sheetname != "Sheet1":
         return JsonResponse({'message': "Invalid sheet name"}, safe=False)
 
     formatted_date = datetime.now().strftime("%d/%m/%Y")
 
-    row_data = [first_name, last_name, email, country_code, phone_number, password, formatted_date]
+    row_data = [first_name, last_name, email, country_code, phone_number, gender, password,confirm_password,agreed_to_terms, formatted_date]
 
     body = {'values': [row_data]}
     sheet_range = f"{sheetname}!A1"
@@ -59,14 +59,14 @@ def send_data_to_google_sheets(first_name, last_name, email, country_code, phone
     return JsonResponse({'message': f"{updated_cells} cells updated in {sheetname}."}, safe=False)
 
 
-def send_data_to_google_sheet2(companyname, officialmale, country_code, mobilenumber, password, linkedinprofile, company_person_name, agreed_to_terms, sheetname):
+def send_data_to_google_sheet2(companyname, officialmale, country_code, mobilenumber, designation, password, confirm_password, linkedinprofile, company_person_name, agreed_to_terms, sheetname):
     if sheetname != "Sheet2":
         return JsonResponse({'message': "Invalid sheet name"}, safe=False)
 
     formatted_date = datetime.now().strftime("%d/%m/%Y")
 
     row_data = [
-        companyname, officialmale, country_code, mobilenumber, password,
+        companyname, officialmale, country_code, mobilenumber, designation, password, confirm_password,
         linkedinprofile, company_person_name, agreed_to_terms, formatted_date
     ]
     sheet_range = f"{sheetname}!A1"
@@ -85,14 +85,14 @@ def send_data_to_google_sheet2(companyname, officialmale, country_code, mobilenu
     return JsonResponse({'message': f"{updated_cells} cells updated in {sheetname}."}, safe=False)
 
 
-def send_data_to_google_sheet3(university, officialmale, country_code, mobilenumber, password, linkedinprofile, college_person_name, agreed_to_terms, sheetname):
+def send_data_to_google_sheet3(university, officialmale, country_code, mobilenumber,  designation, password,confirm_password, linkedinprofile, college_person_name, agreed_to_terms, sheetname):
     if sheetname != "Sheet3":
         return JsonResponse({'message': "Invalid sheet name"}, safe=False)
 
     formatted_date = datetime.now().strftime("%d/%m/%Y")
 
     row_data = [
-        university, officialmale, country_code, mobilenumber, password,
+        university, officialmale, country_code, mobilenumber,  designation, password, confirm_password,
         linkedinprofile, college_person_name, agreed_to_terms, formatted_date
     ]
     sheet_range = f"{sheetname}!A1"
@@ -111,14 +111,14 @@ def send_data_to_google_sheet3(university, officialmale, country_code, mobilenum
     return JsonResponse({'message': f"{updated_cells} cells updated in {sheetname}."}, safe=False)
 
 
-def send_data_to_google_sheet4(consultant_name, official_email, country_code, mobile_number, password, linkedin_profile, consultant_person_name, agreed_to_terms, sheetName):
+def send_data_to_google_sheet4(consultant_name, official_email, country_code, mobile_number,  designation, password, confirm_password, linkedin_profile, consultant_person_name, agreed_to_terms, sheetName):
     if sheetName != "Sheet4":
         return JsonResponse({'message': "Invalid sheet name"}, safe=False)
 
     formatted_date = datetime.now().strftime("%d/%m/%Y")
 
     row_data = [
-        consultant_name, official_email, country_code, mobile_number, password,
+        consultant_name, official_email, country_code, mobile_number,  designation, password, confirm_password,
         linkedin_profile, consultant_person_name, agreed_to_terms, formatted_date
     ]
     sheet_range = f"{sheetName}!A1"

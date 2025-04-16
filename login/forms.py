@@ -4,18 +4,26 @@ from .models import AdmissionReview1, Answer, Contact, JobSeeker, Question, Subs
 class CompanyInChargeForm(forms.ModelForm):
     class Meta:
         model = CompanyInCharge
-        fields = ['company_name','official_email','country_code','mobile_number','password','linkedin_profile','company_person_name','agreed_to_terms']
+        fields = ['company_name','official_email','country_code','mobile_number', 'designation', 'password', 'confirm_password', 'linkedin_profile','company_person_name','agreed_to_terms']
+
+def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password != confirm_password:
+            self.add_error("confirm_password", "Passwords do not match.")
 
 class UniversityInChargeForm(forms.ModelForm):
     class Meta:
         model = UniversityInCharge
-        fields = ['university_name','official_email','country_code','mobile_number','password','linkedin_profile','college_person_name','agreed_to_terms']
+        fields = ['university_name','official_email','country_code','mobile_number', 'designation', 'password', 'confirm_password', 'linkedin_profile','college_person_name','agreed_to_terms']
 
 
 class ConsultantForm(forms.ModelForm):
     class Meta:
         model = Consultant
-        fields = ['consultant_name','official_email','country_code','mobile_number','password','linkedin_profile','consultant_person_name','agreed_to_terms']
+        fields = ['consultant_name','official_email','country_code','mobile_number', 'designation', 'password', 'confirm_password', 'linkedin_profile','consultant_person_name','agreed_to_terms']
 
 
 class SubscriptionForm(forms.ModelForm):

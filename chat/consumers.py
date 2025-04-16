@@ -465,7 +465,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 "content": message.content,
                 "attachments": attachment_details,
                 "timestamp": message.timestamp.isoformat(),
-                "email_sent": False,  # Will update below if email is sent
+                "email_sent": False,
             }
 
             recipient_group = f"user_{recipient_email.replace('@', '_at_').replace('.', '_dot_')}"
