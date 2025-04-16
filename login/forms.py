@@ -6,13 +6,6 @@ class CompanyInChargeForm(forms.ModelForm):
         model = CompanyInCharge
         fields = ['company_name','official_email','country_code','mobile_number', 'designation', 'password', 'confirm_password', 'linkedin_profile','company_person_name','agreed_to_terms']
 
-def clean(self):
-        cleaned_data = super().clean()
-        password = cleaned_data.get("password")
-        confirm_password = cleaned_data.get("confirm_password")
-
-        if password != confirm_password:
-            self.add_error("confirm_password", "Passwords do not match.")
 
 class UniversityInChargeForm(forms.ModelForm):
     class Meta:
@@ -57,20 +50,6 @@ class SubscriptionForm1(forms.ModelForm):
             'email': forms.EmailInput(attrs={'placeholder': 'Enter your email'})
 
 }
-
-# class JobSeekerRegistrationForm(forms.ModelForm):
-#    class Meta:
-#       model = JobSeeker
-#       fields = ['first_name', 'last_name', 'email', 'mobile_number', 'password', 'country_code']
-#       widgets = {
-#          'password': forms.PasswordInput(),
-#     }
-
-# def clean_email(self):
-#         email = self.cleaned_data.get('email')
-#         if JobSeeker.objects.filter(email=email).exists():
-#          raise forms.ValidationError("Email already in use.")
-#         return email
 
 class JobSeekerRegistrationForm(forms.ModelForm):
    class Meta:
