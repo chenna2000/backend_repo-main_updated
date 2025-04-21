@@ -58,8 +58,7 @@ urlpatterns = [
     path('get-all-questions/', views.get_all_questions, name='get-all-questions'),
     path('get-all-answers/', views.get_all_answers, name='get-all-answers'),
     path("submit-review/", views.submit_admission_review, name="submit-review"),
-
-
+    path('search-question/', views.search_question, name='search-question'),
     #path('verify-token/', views.verify_token, name='verify_token'),
     #path('verify-linkedin/', views.verify_linkedin_token, name='verify_linkedin'),
     #path('search/', views.search, name='search'),

@@ -16,6 +16,9 @@ SubscriptionForm1,ConsultantForm,Forgot2Form, UnregisteredCollegesForm
 ,VerifyForm,SubscriptionForm)
 from django.core.mail import EmailMessage # type: ignore
 from django.utils.crypto import get_random_string # type: ignore
+from django.utils.timezone import now, timedelta
+from collections import Counter
+import re
 
 
 #CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
@@ -2096,6 +2099,56 @@ def submit_question(request):
         return JsonResponse({"error": "Invalid data", "details": form.errors}, status=400)
 
     return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+@csrf_exempt
+def search_question(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            keyword = data.get("keyword", "").strip()
+            sort_by = data.get("sort_by", "relevant")
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+
+        if not keyword:
+            return JsonResponse({"error": "Keyword is required"}, status=400)
+
+        questions = Question.objects.filter(text__icontains=keyword)
+
+        if sort_by == "latest":
+            one_year_ago = now() - timedelta(days=365)
+            questions = questions.filter(created_at__gte=one_year_ago).order_by("-created_at")
+
+        elif sort_by == "frequent" or sort_by == "common":
+            all_texts = Question.objects.values_list("text", flat=True)
+            normalized = [re.sub(r'\W+', '', text.lower()) for text in all_texts]
+            freq_counter = Counter(normalized)
+
+            questions = sorted(
+                questions,
+                key=lambda q: freq_counter[re.sub(r'\W+', '', q.text.lower())],
+                reverse=True
+            )
+
+        else:
+            questions = questions.order_by("-created_at")
+
+        questions = questions[:20]
+
+        result = [
+            {
+                "id": q.id,
+                "text": q.text,
+                "created_at": q.created_at.isoformat()
+            }
+            for q in questions
+        ]
+        return JsonResponse({"results": result}, status=200)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
 
 @csrf_exempt
 def submit_answer(request, question_id):
