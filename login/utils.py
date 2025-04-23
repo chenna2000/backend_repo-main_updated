@@ -137,7 +137,7 @@ def send_data_to_google_sheet4(consultant_name, official_email, country_code, mo
     return JsonResponse({'message': f"{updated_cells} cells updated in {sheetName}."}, safe=False)
 
 
-def send_data_to_google_sheet5(first_name, last_name, email, country_code, mobile_number, designation, password, confirm_password, agreed_to_terms, sheetname):
+def send_data_to_google_sheet5(first_name, last_name, email, country_code, mobile_number, designation, password, confirm_password, linkedin_profile, agreed_to_terms, sheetname):
     if sheetname != "Sheet5":
         return JsonResponse({'message': "Invalid sheet name"}, safe=False)
 
@@ -145,7 +145,7 @@ def send_data_to_google_sheet5(first_name, last_name, email, country_code, mobil
 
     row_data = [
         first_name, last_name, email, country_code, mobile_number, designation,
-        password, confirm_password, agreed_to_terms, formatted_date
+        password, confirm_password, linkedin_profile, agreed_to_terms, formatted_date
     ]
     sheet_range = f"{sheetname}!A1"
 

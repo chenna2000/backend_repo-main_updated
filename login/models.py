@@ -126,6 +126,7 @@ class JobSeeker(models.Model):
     designation = models.CharField(max_length=100, default="Null")
     password = models.CharField(max_length=128)
     confirm_password = models.CharField(max_length=128, default="null")
+    linkedin_profile = models.URLField(blank=True, null=True)
     country_code = models.CharField(max_length=5)
     token = models.CharField(max_length=255, blank=True, null=True)
     agreed_to_terms = models.BooleanField(default=True)

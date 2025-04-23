@@ -695,6 +695,7 @@ class RegisterJobSeekerView(View):
                 job_seeker.designation,
                 job_seeker.password,
                 job_seeker.confirm_password,
+                job_seeker.linkedin_profile,
                 job_seeker.agreed_to_terms,
                 "Sheet5",
             )

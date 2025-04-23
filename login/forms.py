@@ -54,7 +54,7 @@ class SubscriptionForm1(forms.ModelForm):
 class JobSeekerRegistrationForm(forms.ModelForm):
    class Meta:
       model = JobSeeker
-      fields = ['first_name', 'last_name', 'email', 'mobile_number', 'designation', 'password',  'confirm_password', 'country_code','agreed_to_terms']
+      fields = ['first_name', 'last_name', 'email', 'mobile_number', 'designation', 'password',  'confirm_password', 'linkedin_profile', 'country_code','agreed_to_terms']
       widgets = {
          'password': forms.PasswordInput(),
     }
