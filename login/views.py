@@ -649,6 +649,9 @@ class RegisterJobSeekerView(View):
         country_code = data.get('country_code', '')
         first_name = data.get('first_name')
         last_name = data.get('last_name')
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
+
 
         errors = {}
 
@@ -670,6 +673,9 @@ class RegisterJobSeekerView(View):
             if not has_two_unique_chars(email_username):
                 errors['email'] = 'Email username must contain at least 2 unique characters'
 
+        if password != confirm_password:
+            errors['confirm_password'] = 'Passwords do not match'
+
         if errors:
             return JsonResponse({'success': False, 'errors': errors}, status=400)
 
@@ -677,6 +683,7 @@ class RegisterJobSeekerView(View):
         if form.is_valid():
             job_seeker = form.save(commit=False)
             job_seeker.password = make_password(form.cleaned_data['password'])
+            job_seeker.confirm_password = make_password(job_seeker.confirm_password)
             job_seeker.save()
 
             send_data_to_google_sheet5(
@@ -685,7 +692,9 @@ class RegisterJobSeekerView(View):
                 job_seeker.email,
                 job_seeker.country_code,
                 job_seeker.mobile_number,
+                job_seeker.designation,
                 job_seeker.password,
+                job_seeker.confirm_password,
                 job_seeker.agreed_to_terms,
                 "Sheet5",
             )

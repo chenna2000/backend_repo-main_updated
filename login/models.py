@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser # type: ignore
 from django.db import models # type: ignore
 
-
 class CustomUser(AbstractUser):
     is_subadmin = models.BooleanField(default=False)
     groups = models.ManyToManyField('auth.Group', related_name='customuser_set', blank=True)
@@ -124,7 +123,9 @@ class JobSeeker(models.Model):
     last_name = models.CharField(max_length=30)
     email = models.EmailField(unique=True)
     mobile_number = models.CharField(max_length=15)
+    designation = models.CharField(max_length=100, default="Null")
     password = models.CharField(max_length=128)
+    confirm_password = models.CharField(max_length=128, default="null")
     country_code = models.CharField(max_length=5)
     token = models.CharField(max_length=255, blank=True, null=True)
     agreed_to_terms = models.BooleanField(default=True)
