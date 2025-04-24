@@ -20,12 +20,6 @@ class OTP(models.Model):
         return f"OTP for {self.email} generated at {self.timestamp}"
 
 class new_user(models.Model):
-    USER_TYPE_CHOICES = [
-        ('student', 'Student'),
-        ('job_seeker', 'Job Seeker'),
-    ]
-
-    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='student')
     firstname = models.CharField(max_length=20)
     lastname = models.CharField(max_length=20)
     country_code = models.CharField(max_length=5, default='IN')
@@ -34,14 +28,6 @@ class new_user(models.Model):
     email = models.EmailField()
     password = models.CharField(max_length=100)
     confirm_password = models.CharField(max_length=100,null=True, blank=True)
-    course = models.CharField(max_length=50, default='B-Tech')
-    educations = models.CharField(max_length=20, default='Not specified')
-    percentage = models.CharField(max_length=10, default='0')
-    preferred_destination = models.CharField(max_length=20, default='Not specified')
-    start_date = models.CharField(max_length=4)
-    entrance = models.CharField(max_length=5, default='N/A')
-    passport = models.CharField(max_length=5, default='None')
-    mode_study = models.CharField(max_length=20, default='None')
     job_experience = models.CharField(max_length=100, blank=True, null=True)
     desired_job_title = models.CharField(max_length=100, blank=True, null=True)
     token = models.CharField(max_length=255, blank=True, null=True)

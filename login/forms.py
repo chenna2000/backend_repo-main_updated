@@ -1,5 +1,40 @@
 from django import forms # type: ignore
-from .models import AdmissionReview1, Answer, Contact, JobSeeker, Question, Subscriber1,Consultant,Forgot2,UniversityInCharge,Subscriber, UnregisteredColleges,Verify,Forgot,CompanyInCharge
+from .models import AdmissionReview1, Answer, Contact, JobSeeker, Question, Subscriber1,Consultant,Forgot2,UniversityInCharge,Subscriber, UnregisteredColleges,Verify,Forgot,CompanyInCharge,new_user
+
+class RegisterForm(forms.ModelForm):
+    confirm_password = forms.CharField(widget=forms.PasswordInput())
+
+    class Meta:
+        model = new_user
+        fields = [
+            'firstname', 'lastname', 'email', 'country_code',
+            'phonenumber', 'gender', 'password', 'confirm_password', 'agreed_to_terms'
+        ]
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if new_user.objects.filter(email=email).exists():
+            raise forms.ValidationError("Email already registered.")
+        username_part = email.split('@')[0]
+        if len(set(username_part.replace(" ", "").lower())) < 2:
+            raise forms.ValidationError("Email must contain at least 2 unique characters before @.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+        phone = cleaned_data.get("phonenumber")
+        country_code = cleaned_data.get("country_code")
+
+        if password != confirm_password:
+            self.add_error('confirm_password', "Passwords do not match.")
+
+        if new_user.objects.filter(phonenumber=phone, country_code=country_code).exists():
+            self.add_error('phonenumber', "Phone number already registered.")
+
+        return cleaned_data
+
 
 class CompanyInChargeForm(forms.ModelForm):
     class Meta:

@@ -11,7 +11,7 @@ from .models import Answer, CompanyInCharge, Consultant, JobSeeker, Question, Un
 from django.contrib.auth.hashers import make_password, check_password # type: ignore
 from django.utils.decorators import method_decorator # type: ignore
 from django.views import View # type: ignore
-from .forms import (AnswerForm, ContactForm, JobSeekerRegistrationForm, QuestionForm, Step1Form, Step2Form, Step3Form, Step4Form, Step5Form, Step6Form, UniversityInChargeForm,CompanyInChargeForm,ForgotForm,
+from .forms import (AnswerForm, ContactForm, JobSeekerRegistrationForm, QuestionForm, RegisterForm, Step1Form, Step2Form, Step3Form, Step4Form, Step5Form, Step6Form, UniversityInChargeForm,CompanyInChargeForm,ForgotForm,
 SubscriptionForm1,ConsultantForm,Forgot2Form, UnregisteredCollegesForm
 ,VerifyForm,SubscriptionForm)
 from django.core.mail import EmailMessage # type: ignore
@@ -41,133 +41,129 @@ def get_csrf_token(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class Register(View):
     def post(self, request):
         try:
-            data = json.loads(request.body.decode('utf-8'))
-
-            first_name = data.get('firstname')
-            last_name = data.get('lastname')
+            data = json.loads(request.body)
+            
+            firstname = data.get('firstname')
+            lastname = data.get('lastname')
             email = data.get('email')
-            country_code = data.get('country_code')
-            phone_number = data.get('phonenumber')
+            country_code = data.get('country_code', 'IN')
+            phonenumber = data.get('phonenumber')
+            gender = data.get('gender', 'other')
             password = data.get('password')
             confirm_password = data.get('confirm_password')
-            gender = data.get('gender')
-            agreed_to_terms = data.get('agreed_to_terms')
-
-            if not email:
-                return JsonResponse({'error': 'Please enter a correct email id'}, status=400)
-            if not password:
-                return JsonResponse({'error': 'Please enter password'}, status=400)
-            if confirm_password != password:
-                return JsonResponse({'error': 'Passwords do not match'}, status=400)
+            agreed_to_terms = data.get('agreed_to_terms', True)
 
             errors = {}
 
-            existing_user = new_user.objects.filter(email=email).first()
-            if existing_user:
-                if existing_user.firstname != first_name or existing_user.lastname != last_name:
-                    errors['email'] = 'Email already registered with a different name'
-                else:
-                    errors['email'] = 'Email already registered'
+            form = RegisterForm(data)
 
-            if new_user.objects.filter(country_code=country_code, phonenumber=phone_number).exists():
-                errors['phonenumber'] = 'Phone number already registered'
-
-            def has_two_unique_chars(value):
-                return len(set(value.replace(" ", "").lower())) >= 2
-
-            if '@' in email:
-                email_username = email.split('@')[0]
-                if not has_two_unique_chars(email_username):
-                    errors['email'] = 'Email must contain at least 2 unique characters before @'
-
-            if errors:
-                return JsonResponse({'error': errors}, status=400)
+            if not form.is_valid():
+                return JsonResponse({'errors': form.errors}, status=400)
 
             hashed_password = make_password(password)
-            hashed_password1 = make_password(confirm_password)		
-            send_data_to_google_sheets(first_name, last_name, email, country_code, phone_number,gender, hashed_password, hashed_password1, agreed_to_terms, "Sheet1")
 
-            return JsonResponse({'message': 'Go to the next page.'})
+            hashed_password1 = make_password(confirm_password)
+
+            user = new_user.objects.create(
+                firstname=firstname,
+                lastname=lastname,
+                email=email,
+                country_code=country_code,
+                phonenumber=phonenumber,
+                password=hashed_password,
+                confirm_password=hashed_password1,
+                gender=gender,
+                agreed_to_terms=agreed_to_terms
+            )
+
+            send_data_to_google_sheets(
+                firstname, lastname, email, country_code,
+                phonenumber, gender, hashed_password,
+                hashed_password1, agreed_to_terms, "Sheet1"
+            )
+
+            return JsonResponse({'message': 'Registration successful'}, status=201)
 
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON format'}, status=400)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
-@method_decorator(csrf_exempt, name='dispatch')
-class Next(View):
-    def post(self, request):
-        try:
-            data = json.loads(request.body.decode('utf-8'))
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'errors': {'json': 'Invalid JSON'}}, status=400)
 
-        first_name = data.get('firstname')
-        last_name = data.get('lastname')
-        email = data.get('email')
-        password = data.get('password')
-        confirm_password = data.get('confirm_password')
-        gender = data.get('gender')
-        course = data.get('course')
-        education = data.get('education')
-        percentage = data.get('percentage')
-        preferred_destination = data.get('preferred_destination')
-        start_date = data.get('start_date')
-        mode_study = data.get('mode_study')
-        entrance_exam = data.get('entrance')
-        passport = data.get('passport')
-        country_code = data.get('country_code')
-        phone_number = data.get('phonenumber')
 
-        errors = {}
+# @method_decorator(csrf_exempt, name='dispatch')
+# class Next(View):
+#     def post(self, request):
+#         try:
+#             data = json.loads(request.body.decode('utf-8'))
+#         except json.JSONDecodeError:
+#             return JsonResponse({'success': False, 'errors': {'json': 'Invalid JSON'}}, status=400)
+
+#         first_name = data.get('firstname')
+#         last_name = data.get('lastname')
+#         email = data.get('email')
+#         password = data.get('password')
+#         confirm_password = data.get('confirm_password')
+#         gender = data.get('gender')
+#         course = data.get('course')
+#         education = data.get('education')
+#         percentage = data.get('percentage')
+#         preferred_destination = data.get('preferred_destination')
+#         start_date = data.get('start_date')
+#         mode_study = data.get('mode_study')
+#         entrance_exam = data.get('entrance')
+#         passport = data.get('passport')
+#         country_code = data.get('country_code')
+#         phone_number = data.get('phonenumber')
+
+#         errors = {}
         
-        if password != confirm_password:
-            errors['password'] = 'Passwords do not match'
+#         if password != confirm_password:
+#             errors['password'] = 'Passwords do not match'
 
-        if not entrance_exam:
-            errors['entrance'] = 'Check box not clicked'
-        if not passport:
-            errors['passport'] = 'Check box not clicked'
+#         if not entrance_exam:
+#             errors['entrance'] = 'Check box not clicked'
+#         if not passport:
+#             errors['passport'] = 'Check box not clicked'
 
-        if errors:
-            return JsonResponse({'success': False, 'errors': errors}, status=400)
+#         if errors:
+#             return JsonResponse({'success': False, 'errors': errors}, status=400)
 
-        try:
-            new_password = make_password(password)
+#         try:
+#             new_password = make_password(password)
 
-            new_password1 = make_password(confirm_password)
+#             new_password1 = make_password(confirm_password)
 
 
-            try:
-                us = new_user(
-                    firstname=first_name,
-                    lastname=last_name,
-                    email=email,
-                    country_code=country_code,
-                    phonenumber=phone_number,
-                    password=new_password,
-                    confirm_password=new_password1,
-                    course=course,
-                    educations=education,
-                    percentage=percentage,
-                    preferred_destination=preferred_destination,
-                    start_date=start_date,
-                    mode_study=mode_study,
-                    entrance=entrance_exam,
-                    passport=passport,
-                    gender=gender
-                )
-                us.save()
-                return JsonResponse({'message': 'Registration successful'})
-            except Exception as e:
-                return JsonResponse({'success': False, 'errors': {'server': str(e)}}, status=500)
-        except Exception as e:
-            return JsonResponse({'success': False, 'errors': {'password': str(e)}}, status=500)
+#             try:
+#                 us = new_user(
+#                     firstname=first_name,
+#                     lastname=last_name,
+#                     email=email,
+#                     country_code=country_code,
+#                     phonenumber=phone_number,
+#                     password=new_password,
+#                     confirm_password=new_password1,
+#                     course=course,
+#                     educations=education,
+#                     percentage=percentage,
+#                     preferred_destination=preferred_destination,
+#                     start_date=start_date,
+#                     mode_study=mode_study,
+#                     entrance=entrance_exam,
+#                     passport=passport,
+#                     gender=gender
+#                 )
+#                 us.save()
+#                 return JsonResponse({'message': 'Registration successful'})
+#             except Exception as e:
+#                 return JsonResponse({'success': False, 'errors': {'server': str(e)}}, status=500)
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'errors': {'password': str(e)}}, status=500)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
