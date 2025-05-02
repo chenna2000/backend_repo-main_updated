@@ -18,8 +18,9 @@ from django.core.mail import EmailMessage # type: ignore
 from django.utils.crypto import get_random_string # type: ignore
 from django.utils.timezone import now, timedelta
 from collections import Counter
+from django.core.mail import EmailMultiAlternatives
 import re
-
+from django.template.loader import render_to_string
 
 #CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 #CLIENT_ID = os.getenv('LINKEDIN_CLIENT_ID')
@@ -40,6 +41,7 @@ def get_csrf_token(request):
         return JsonResponse({'csrf_token': csrf_token}, status=200)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Register(View):
@@ -94,78 +96,6 @@ class Register(View):
             return JsonResponse({'error': str(e)}, status=500)
 
 
-
-# @method_decorator(csrf_exempt, name='dispatch')
-# class Next(View):
-#     def post(self, request):
-#         try:
-#             data = json.loads(request.body.decode('utf-8'))
-#         except json.JSONDecodeError:
-#             return JsonResponse({'success': False, 'errors': {'json': 'Invalid JSON'}}, status=400)
-
-#         first_name = data.get('firstname')
-#         last_name = data.get('lastname')
-#         email = data.get('email')
-#         password = data.get('password')
-#         confirm_password = data.get('confirm_password')
-#         gender = data.get('gender')
-#         course = data.get('course')
-#         education = data.get('education')
-#         percentage = data.get('percentage')
-#         preferred_destination = data.get('preferred_destination')
-#         start_date = data.get('start_date')
-#         mode_study = data.get('mode_study')
-#         entrance_exam = data.get('entrance')
-#         passport = data.get('passport')
-#         country_code = data.get('country_code')
-#         phone_number = data.get('phonenumber')
-
-#         errors = {}
-        
-#         if password != confirm_password:
-#             errors['password'] = 'Passwords do not match'
-
-#         if not entrance_exam:
-#             errors['entrance'] = 'Check box not clicked'
-#         if not passport:
-#             errors['passport'] = 'Check box not clicked'
-
-#         if errors:
-#             return JsonResponse({'success': False, 'errors': errors}, status=400)
-
-#         try:
-#             new_password = make_password(password)
-
-#             new_password1 = make_password(confirm_password)
-
-
-#             try:
-#                 us = new_user(
-#                     firstname=first_name,
-#                     lastname=last_name,
-#                     email=email,
-#                     country_code=country_code,
-#                     phonenumber=phone_number,
-#                     password=new_password,
-#                     confirm_password=new_password1,
-#                     course=course,
-#                     educations=education,
-#                     percentage=percentage,
-#                     preferred_destination=preferred_destination,
-#                     start_date=start_date,
-#                     mode_study=mode_study,
-#                     entrance=entrance_exam,
-#                     passport=passport,
-#                     gender=gender
-#                 )
-#                 us.save()
-#                 return JsonResponse({'message': 'Registration successful'})
-#             except Exception as e:
-#                 return JsonResponse({'success': False, 'errors': {'server': str(e)}}, status=500)
-#         except Exception as e:
-#             return JsonResponse({'success': False, 'errors': {'password': str(e)}}, status=500)
-
-
 @method_decorator(csrf_exempt, name='dispatch')
 class Login(View):
     def post(self, request):
@@ -210,16 +140,71 @@ class Login(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class Forgot_view(View):
+#     def post(self, request):
+#         try:
+#             # auth_header = request.headers.get('Authorization', '')
+#             # token = auth_header.split(' ')[1] if auth_header.startswith('Bearer ') else None
+
+#             # if not token:
+#             #     return JsonResponse({'error': 'Token is missing or invalid format'}, status=400)
+
+#             data = json.loads(request.body.decode('utf-8'))
+#             form = ForgotForm(data)
+
+#             if form.is_valid():
+#                 forgot = form.save()
+#                 EMAIL = forgot.email
+
+#                 user = new_user.objects.filter(email=EMAIL).first()
+#                 if not user:
+#                     return JsonResponse({'error': 'Email does not exist'}, status=404)
+
+#                 new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
+#                 request.session['otp'] = new_otp
+
+#                 request.session['email'] = EMAIL
+#                 request.session.save()
+
+#                 # if 'otp' in request.session and 'email' in request.session:
+#                 #     print('Session data saved:', request.session['otp'], request.session['email'])
+#                 # else:
+#                 #     print('Session data not saved.')
+
+#                 subject = 'Your One-Time Password (OTP) for Secure Access'
+#                 message = f'''Dear User,
+
+#                 For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+
+#                 OTP: {new_otp}
+
+#                 Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+
+#                 Thank you for your attention to this matter.
+
+#                 Best regards,
+#                 Collegecue
+#                 Support Team
+#                 '''
+#                 sender_email = settings.EMAIL_HOST_USER
+#                 recipient_email = [EMAIL]
+
+#                 send_mail(subject, message, sender_email, recipient_email)
+#                 return JsonResponse({'message': 'OTP sent successfully'})
+#             else:
+#                 errors = dict(form.errors.items())
+#                 return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+#         except (json.JSONDecodeError, IndexError):
+#             return JsonResponse({'error': 'Invalid JSON or token'}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class Forgot_view(View):
     def post(self, request):
         try:
-            # auth_header = request.headers.get('Authorization', '')
-            # token = auth_header.split(' ')[1] if auth_header.startswith('Bearer ') else None
-
-            # if not token:
-            #     return JsonResponse({'error': 'Token is missing or invalid format'}, status=400)
-
             data = json.loads(request.body.decode('utf-8'))
             form = ForgotForm(data)
 
@@ -231,37 +216,43 @@ class Forgot_view(View):
                 if not user:
                     return JsonResponse({'error': 'Email does not exist'}, status=404)
 
+                # Generate OTP
                 new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
                 request.session['otp'] = new_otp
-
                 request.session['email'] = EMAIL
                 request.session.save()
 
-                # if 'otp' in request.session and 'email' in request.session:
-                #     print('Session data saved:', request.session['otp'], request.session['email'])
-                # else:
-                #     print('Session data not saved.')
-
                 subject = 'Your One-Time Password (OTP) for Secure Access'
-                message = f'''Dear User,
 
-                For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+                # Plaintext fallback
+                plain_message = f'''Dear User,
 
-                OTP: {new_otp}
+For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
 
-                Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+OTP: {new_otp}
 
-                Thank you for your attention to this matter.
+Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
 
-                Best regards,
-                Collegecue
-                Support Team
-                '''
+Thank you for your attention to this matter.
+
+Best regards,
+Collegecue Support Team
+'''
+
+                # HTML version using template
+                html_message = render_to_string('login/otp_email.html', {
+                    'new_otp': new_otp
+                })
+
                 sender_email = settings.EMAIL_HOST_USER
                 recipient_email = [EMAIL]
 
-                send_mail(subject, message, sender_email, recipient_email)
+                email = EmailMultiAlternatives(subject, plain_message, sender_email, recipient_email)
+                email.attach_alternative(html_message, "text/html")
+                email.send()
+
                 return JsonResponse({'message': 'OTP sent successfully'})
+
             else:
                 errors = dict(form.errors.items())
                 return JsonResponse({'success': False, 'errors': errors}, status=400)
@@ -270,6 +261,8 @@ class Forgot_view(View):
             return JsonResponse({'error': 'Invalid JSON or token'}, status=400)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Verify_view(View):
@@ -315,16 +308,11 @@ class Verify_view(View):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class ResendOtpView(View):
     def get(self, request):
         try:
-            # auth_header = request.headers.get('Authorization', '')
-            # token = auth_header.split(' ')[1] if auth_header.startswith('Bearer ') else None
-
-            # if not token:
-            #     return JsonResponse({'error': 'Token is missing or invalid format'}, status=400)
-
             csrf_token = get_token(request)
             if not csrf_token:
                 return JsonResponse({'error': 'CSRF token missing'}, status=403)
@@ -333,36 +321,47 @@ class ResendOtpView(View):
             if not email:
                 return JsonResponse({'error': 'Email not found in session'}, status=400)
 
-            # user = new_user.objects.filter(email=email).first()
-            # if not user:
-            #     return JsonResponse({'error': 'Invalid token or user not found'}, status=404)
-
+            # Generate new OTP
             new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
             request.session['otp'] = new_otp
 
+            # Email subject
             subject = 'Your One-Time Password (OTP) for Secure Access'
-            message = f'''Dear User,
 
-            For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+            # Plain text message
+            plain_message = f'''Dear User,
 
-            OTP: {new_otp}
+For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
 
-            Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+OTP: {new_otp}
 
-            Thank you for your attention to this matter.
+Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
 
-            Best regards,
-            Collegecue
-            Support Team
-            '''
+Thank you for your attention to this matter.
+
+Best regards,
+Collegecue Support Team
+'''
+
+            # Render HTML message
+            html_message = render_to_string('login/otp_email.html', {
+                'new_otp': new_otp
+            })
+
             sender_email = settings.EMAIL_HOST_USER
             recipient_email = [email]
-            send_mail(subject, message, sender_email, recipient_email)
+
+            # Send email with both plain text and HTML
+            email_message = EmailMultiAlternatives(subject, plain_message, sender_email, recipient_email)
+            email_message.attach_alternative(html_message, "text/html")
+            email_message.send()
 
             return JsonResponse({'message': 'New OTP sent successfully'})
 
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Forgot2_view(View):
@@ -715,7 +714,7 @@ class RegisterJobSeekerView(View):
             return JsonResponse({'success': True, 'message': 'Registration successful'}, status=201)
 
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
-
+    
 # @csrf_protect
 # def search(request):
 #     api_key = 'f120cebcf2a4379d72b80691ed4fe25bfc7443b11ce3739e6ee7e1bb790923505b48f76881878ee5f8f6af795bfc2c0be5c7d130dc820f3503bf58cced23e7c8462c10cf656a865164d8a6546f14a10f9c0bd31ed348f8774e6b47cb930a6266e13479cbf80f0a6e6c888e2c01696a0cd94b0b6d2da1dbc9eebc862985cdf64b'
@@ -1404,7 +1403,63 @@ class DeleteConsultantAccountView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
-##with session
+# ##with session
+# @method_decorator(csrf_exempt, name='dispatch')
+# class Company_Forgot_view(View):
+#     def post(self, request):
+#         try:
+#             data = json.loads(request.body.decode('utf-8'))
+#             form = ForgotForm(data)
+
+#             if form.is_valid():
+#                 forgot = form.save()
+#                 EMAIL =  forgot.email
+
+#                 company = CompanyInCharge.objects.filter(official_email=EMAIL).first()
+#                 if not company:
+#                     return JsonResponse({'error': 'Email does not exist'}, status=404)
+
+#                 new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
+#                 request.session['otp'] = new_otp
+
+#                 request.session['email'] = EMAIL
+#                 request.session.save()
+
+#                 # if 'otp' in request.session and 'email' in request.session:
+#                 #     print('Session data saved:', request.session['otp'], request.session['email'])
+#                 # else:
+#                 #     print('Session data not saved.')
+
+#                 subject = 'Your One-Time Password (OTP) for Secure Access'
+#                 message = f'''Dear User,
+
+#                 For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+
+#                 OTP: {new_otp}
+
+#                 Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+
+#                 Thank you for your attention to this matter.
+
+#                 Best regards,
+#                 Collegecue
+#                 Support Team
+#                 '''
+#                 sender_email = settings.EMAIL_HOST_USER
+#                 recipient_email = [EMAIL]
+
+#                 send_mail(subject, message, sender_email, recipient_email)
+#                 return JsonResponse({'message': 'OTP sent successfully'})
+#             else:
+#                 errors = dict(form.errors.items())
+#                 return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+#         except (json.JSONDecodeError, IndexError):
+#             return JsonResponse({'error': 'Invalid JSON or token'}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class Company_Forgot_view(View):
     def post(self, request):
@@ -1414,7 +1469,7 @@ class Company_Forgot_view(View):
 
             if form.is_valid():
                 forgot = form.save()
-                EMAIL =  forgot.email
+                EMAIL = forgot.email
 
                 company = CompanyInCharge.objects.filter(official_email=EMAIL).first()
                 if not company:
@@ -1422,35 +1477,40 @@ class Company_Forgot_view(View):
 
                 new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
                 request.session['otp'] = new_otp
-
                 request.session['email'] = EMAIL
                 request.session.save()
 
-                # if 'otp' in request.session and 'email' in request.session:
-                #     print('Session data saved:', request.session['otp'], request.session['email'])
-                # else:
-                #     print('Session data not saved.')
-
                 subject = 'Your One-Time Password (OTP) for Secure Access'
-                message = f'''Dear User,
 
-                For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+                # Plain text message
+                plain_message = f'''Dear User,
 
-                OTP: {new_otp}
+For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
 
-                Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+OTP: {new_otp}
 
-                Thank you for your attention to this matter.
+Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
 
-                Best regards,
-                Collegecue
-                Support Team
-                '''
+Thank you for your attention to this matter.
+
+Best regards,
+Collegecue Support Team
+'''
+
+                # HTML message using template
+                html_message = render_to_string('login/otp_email.html', {
+                    'new_otp': new_otp
+                })
+
                 sender_email = settings.EMAIL_HOST_USER
                 recipient_email = [EMAIL]
 
-                send_mail(subject, message, sender_email, recipient_email)
+                email = EmailMultiAlternatives(subject, plain_message, sender_email, recipient_email)
+                email.attach_alternative(html_message, "text/html")
+                email.send()
+
                 return JsonResponse({'message': 'OTP sent successfully'})
+
             else:
                 errors = dict(form.errors.items())
                 return JsonResponse({'success': False, 'errors': errors}, status=400)
@@ -1459,6 +1519,9 @@ class Company_Forgot_view(View):
             return JsonResponse({'error': 'Invalid JSON or token'}, status=400)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Company_Verify_view(View):
@@ -1493,6 +1556,45 @@ class Company_Verify_view(View):
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class CompanyResendOtpView(View):
+#     def get(self, request):
+#         try:
+#             csrf_token = get_token(request)
+#             if not csrf_token:
+#                 return JsonResponse({'error': 'CSRF token missing'}, status=403)
+
+#             email = request.session.get('email')
+#             if not email:
+#                 return JsonResponse({'error': 'Email not found in session'}, status=400)
+
+#             new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
+#             request.session['otp'] = new_otp
+
+#             subject = 'Your One-Time Password (OTP) for Secure Access'
+#             message = f'''Dear User,
+
+#             For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+
+#             OTP: {new_otp}
+
+#             Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+
+#             Thank you for your attention to this matter.
+
+#             Best regards,
+#             Collegecue
+#             Support Team
+#             '''
+#             sender_email = settings.EMAIL_HOST_USER
+#             recipient_email = [email]
+#             send_mail(subject, message, sender_email, recipient_email)
+
+#             return JsonResponse({'message': 'New OTP sent successfully'})
+
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class CompanyResendOtpView(View):
     def get(self, request):
@@ -1509,28 +1611,40 @@ class CompanyResendOtpView(View):
             request.session['otp'] = new_otp
 
             subject = 'Your One-Time Password (OTP) for Secure Access'
-            message = f'''Dear User,
 
-            For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+            # Plain text fallback message
+            plain_message = f'''Dear User,
 
-            OTP: {new_otp}
+For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
 
-            Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+OTP: {new_otp}
 
-            Thank you for your attention to this matter.
+Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
 
-            Best regards,
-            Collegecue
-            Support Team
-            '''
+Thank you for your attention to this matter.
+
+Best regards,
+Collegecue Support Team
+'''
+
+            # HTML message using template
+            html_message = render_to_string('login/otp_email.html', {
+                'new_otp': new_otp
+            })
+
             sender_email = settings.EMAIL_HOST_USER
             recipient_email = [email]
-            send_mail(subject, message, sender_email, recipient_email)
+
+            email_msg = EmailMultiAlternatives(subject, plain_message, sender_email, recipient_email)
+            email_msg.attach_alternative(html_message, "text/html")
+            email_msg.send()
 
             return JsonResponse({'message': 'New OTP sent successfully'})
 
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CompanyForgot2_view(View):
@@ -1570,6 +1684,56 @@ class CompanyForgot2_view(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+
+# @method_decorator(csrf_exempt, name='dispatch')
+# class ForgotUniversityInChargeView(View):
+#     def post(self, request):
+#         try:
+#             data = json.loads(request.body.decode('utf-8'))
+#             form = ForgotForm(data)
+
+#             if form.is_valid():
+#                 forgot = form.save()
+#                 EMAIL = forgot.email
+
+#                 university = UniversityInCharge.objects.filter(official_email=EMAIL).first()
+#                 if not university:
+#                     return JsonResponse({'error': 'Email does not exist'}, status=404)
+
+#                 new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
+#                 request.session['otp'] = new_otp
+#                 request.session['email'] = EMAIL
+#                 request.session.save()
+
+#                 subject = 'Your One-Time Password (OTP) for Secure Access'
+#                 message = f'''Dear User,
+
+#                 For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+
+#                 OTP: {new_otp}
+
+#                 Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+
+#                 Thank you for your attention to this matter.
+
+#                 Best regards,
+#                 Collegecue
+#                 Support Team
+#                 '''
+#                 sender_email = settings.EMAIL_HOST_USER
+#                 recipient_email = [EMAIL]
+
+#                 send_mail(subject, message, sender_email, recipient_email)
+#                 return JsonResponse({'message': 'OTP sent successfully'})
+#             else:
+#                 errors = dict(form.errors.items())
+#                 return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+#         except (json.JSONDecodeError, IndexError):
+#             return JsonResponse({'error': 'Invalid JSON or token'}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class ForgotUniversityInChargeView(View):
     def post(self, request):
@@ -1591,24 +1755,34 @@ class ForgotUniversityInChargeView(View):
                 request.session.save()
 
                 subject = 'Your One-Time Password (OTP) for Secure Access'
-                message = f'''Dear User,
 
-                For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+                # Plain text fallback
+                plain_message = f'''Dear User,
 
-                OTP: {new_otp}
+For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
 
-                Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+OTP: {new_otp}
 
-                Thank you for your attention to this matter.
+Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
 
-                Best regards,
-                Collegecue
-                Support Team
-                '''
+Thank you for your attention to this matter.
+
+Best regards,
+Collegecue Support Team
+'''
+
+                # HTML template
+                html_message = render_to_string('login/otp_email.html', {
+                    'new_otp': new_otp
+                })
+
                 sender_email = settings.EMAIL_HOST_USER
                 recipient_email = [EMAIL]
 
-                send_mail(subject, message, sender_email, recipient_email)
+                email = EmailMultiAlternatives(subject, plain_message, sender_email, recipient_email)
+                email.attach_alternative(html_message, "text/html")
+                email.send()
+
                 return JsonResponse({'message': 'OTP sent successfully'})
             else:
                 errors = dict(form.errors.items())
@@ -1618,6 +1792,7 @@ class ForgotUniversityInChargeView(View):
             return JsonResponse({'error': 'Invalid JSON or token'}, status=400)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class VerifyUniversityInChargeOTPView(View):
@@ -1648,6 +1823,46 @@ class VerifyUniversityInChargeOTPView(View):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class ResendUniversityInChargeOtpView(View):
+#     def get(self, request):
+#         try:
+#             csrf_token = get_token(request)
+#             if not csrf_token:
+#                 return JsonResponse({'error': 'CSRF token missing'}, status=403)
+
+#             email = request.session.get('email')
+#             if not email:
+#                 return JsonResponse({'error': 'Email not found in session'}, status=400)
+
+#             new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
+#             request.session['otp'] = new_otp
+
+#             subject = 'Your One-Time Password (OTP) for Secure Access'
+#             message = f'''Dear User,
+
+#             For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+
+#             OTP: {new_otp}
+
+#             Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+
+#             Thank you for your attention to this matter.
+
+#             Best regards,
+#             Collegecue
+#             Support Team
+#             '''
+#             sender_email = settings.EMAIL_HOST_USER
+#             recipient_email = [email]
+#             send_mail(subject, message, sender_email, recipient_email)
+
+#             return JsonResponse({'message': 'New OTP sent successfully'})
+
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class ResendUniversityInChargeOtpView(View):
     def get(self, request):
@@ -1664,28 +1879,39 @@ class ResendUniversityInChargeOtpView(View):
             request.session['otp'] = new_otp
 
             subject = 'Your One-Time Password (OTP) for Secure Access'
-            message = f'''Dear User,
 
-            For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+            # Plain text fallback message
+            plain_message = f'''Dear User,
 
-            OTP: {new_otp}
+For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
 
-            Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+OTP: {new_otp}
 
-            Thank you for your attention to this matter.
+Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
 
-            Best regards,
-            Collegecue
-            Support Team
-            '''
+Thank you for your attention to this matter.
+
+Best regards,
+Collegecue Support Team
+'''
+
+            # HTML version using template
+            html_message = render_to_string('login/otp_email.html', {
+                'new_otp': new_otp
+            })
+
             sender_email = settings.EMAIL_HOST_USER
             recipient_email = [email]
-            send_mail(subject, message, sender_email, recipient_email)
+
+            email_msg = EmailMultiAlternatives(subject, plain_message, sender_email, recipient_email)
+            email_msg.attach_alternative(html_message, "text/html")
+            email_msg.send()
 
             return JsonResponse({'message': 'New OTP sent successfully'})
 
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ResetPasswordUniversityInChargeView(View):
@@ -1764,6 +1990,56 @@ class ResetPasswordNewUserView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class ForgotJobseekerView(View):
+#     def post(self, request):
+#         try:
+#             data = json.loads(request.body.decode('utf-8'))
+#             form = ForgotForm(data)
+
+#             if form.is_valid():
+#                 forgot = form.save()
+#                 EMAIL = forgot.email
+
+#                 jobseeker = JobSeeker.objects.filter(email=EMAIL).first()
+#                 if not jobseeker:
+#                     return JsonResponse({'error': 'Email does not exist'}, status=404)
+
+#                 new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
+#                 request.session['otp'] = new_otp
+#                 request.session['email'] = EMAIL
+#                 request.session.save()
+
+#                 subject = 'Your One-Time Password (OTP) for Secure Access'
+#                 message = f'''Dear User,
+
+#                 For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+
+#                 OTP: {new_otp}
+
+#                 Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+
+#                 Thank you for your attention to this matter.
+
+#                 Best regards,
+#                 Collegecue
+#                 Support Team
+#                 '''
+#                 sender_email = settings.EMAIL_HOST_USER
+#                 recipient_email = [EMAIL]
+
+#                 send_mail(subject, message, sender_email, recipient_email)
+#                 return JsonResponse({'message': 'OTP sent successfully'})
+#             else:
+#                 errors = dict(form.errors.items())
+#                 return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+#         except (json.JSONDecodeError, IndexError):
+#             return JsonResponse({'error': 'Invalid JSON or token'}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class ForgotJobseekerView(View):
     def post(self, request):
@@ -1785,24 +2061,34 @@ class ForgotJobseekerView(View):
                 request.session.save()
 
                 subject = 'Your One-Time Password (OTP) for Secure Access'
-                message = f'''Dear User,
 
-                For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+                # Plaintext version
+                plain_message = f'''Dear User,
 
-                OTP: {new_otp}
+For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
 
-                Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+OTP: {new_otp}
 
-                Thank you for your attention to this matter.
+Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
 
-                Best regards,
-                Collegecue
-                Support Team
-                '''
+Thank you for your attention to this matter.
+
+Best regards,
+Collegecue Support Team
+'''
+
+                # HTML template version
+                html_message = render_to_string('login/otp_email.html', {
+                    'new_otp': new_otp
+                })
+
                 sender_email = settings.EMAIL_HOST_USER
                 recipient_email = [EMAIL]
 
-                send_mail(subject, message, sender_email, recipient_email)
+                email_msg = EmailMultiAlternatives(subject, plain_message, sender_email, recipient_email)
+                email_msg.attach_alternative(html_message, "text/html")
+                email_msg.send()
+
                 return JsonResponse({'message': 'OTP sent successfully'})
             else:
                 errors = dict(form.errors.items())
@@ -1812,6 +2098,8 @@ class ForgotJobseekerView(View):
             return JsonResponse({'error': 'Invalid JSON or token'}, status=400)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class VerifyJobseekerOTPView(View):
@@ -1842,6 +2130,46 @@ class VerifyJobseekerOTPView(View):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class ResendJobseekerOtpView(View):
+#     def get(self, request):
+#         try:
+#             csrf_token = get_token(request)
+#             if not csrf_token:
+#                 return JsonResponse({'error': 'CSRF token missing'}, status=403)
+
+#             email = request.session.get('email')
+#             if not email:
+#                 return JsonResponse({'error': 'Email not found in session'}, status=400)
+
+#             new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
+#             request.session['otp'] = new_otp
+
+#             subject = 'Your One-Time Password (OTP) for Secure Access'
+#             message = f'''Dear User,
+
+#             For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+
+#             OTP: {new_otp}
+
+#             Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+
+#             Thank you for your attention to this matter.
+
+#             Best regards,
+#             Collegecue
+#             Support Team
+#             '''
+#             sender_email = settings.EMAIL_HOST_USER
+#             recipient_email = [email]
+#             send_mail(subject, message, sender_email, recipient_email)
+
+#             return JsonResponse({'message': 'New OTP sent successfully'})
+
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class ResendJobseekerOtpView(View):
     def get(self, request):
@@ -1858,28 +2186,40 @@ class ResendJobseekerOtpView(View):
             request.session['otp'] = new_otp
 
             subject = 'Your One-Time Password (OTP) for Secure Access'
-            message = f'''Dear User,
 
-            For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+            # Plain text message
+            plain_message = f'''Dear User,
 
-            OTP: {new_otp}
+For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
 
-            Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+OTP: {new_otp}
 
-            Thank you for your attention to this matter.
+Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
 
-            Best regards,
-            Collegecue
-            Support Team
-            '''
+Thank you for your attention to this matter.
+
+Best regards,
+Collegecue Support Team
+'''
+
+            # HTML message
+            html_message = render_to_string('login/otp_email.html', {
+                'new_otp': new_otp
+            })
+
             sender_email = settings.EMAIL_HOST_USER
             recipient_email = [email]
-            send_mail(subject, message, sender_email, recipient_email)
+
+            email_msg = EmailMultiAlternatives(subject, plain_message, sender_email, recipient_email)
+            email_msg.attach_alternative(html_message, "text/html")
+            email_msg.send()
 
             return JsonResponse({'message': 'New OTP sent successfully'})
 
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ResetPasswordJobseekerView(View):
@@ -1918,6 +2258,55 @@ class ResetPasswordJobseekerView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class ForgotConsultantView(View):
+#     def post(self, request):
+#         try:
+#             data = json.loads(request.body.decode('utf-8'))
+#             form = ForgotForm(data)
+
+#             if form.is_valid():
+#                 forgot = form.save()
+#                 EMAIL = forgot.email
+
+#                 consultant = Consultant.objects.filter(official_email=EMAIL).first()
+#                 if not consultant:
+#                     return JsonResponse({'error': 'email does not exist'}, status=404)
+
+#                 new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
+#                 request.session['otp'] = new_otp
+#                 request.session['email'] = EMAIL
+#                 request.session.save()
+
+#                 subject = 'Your One-Time Password (OTP) for Secure Access'
+#                 message = f'''Dear User,
+
+#                 For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+
+#                 OTP: {new_otp}
+
+#                 Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+
+#                 Thank you for your attention to this matter.
+
+#                 Best regards,
+#                 Collegecue
+#                 Support Team
+#                 '''
+#                 sender_email = settings.EMAIL_HOST_USER
+#                 recipient_email = [EMAIL]
+
+#                 send_mail(subject, message, sender_email, recipient_email)
+#                 return JsonResponse({'message': 'OTP sent successfully'})
+#             else:
+#                 errors = dict(form.errors.items())
+#                 return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+#         except (json.JSONDecodeError, IndexError):
+#             return JsonResponse({'error': 'Invalid JSON or token'}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class ForgotConsultantView(View):
     def post(self, request):
@@ -1931,7 +2320,7 @@ class ForgotConsultantView(View):
 
                 consultant = Consultant.objects.filter(official_email=EMAIL).first()
                 if not consultant:
-                    return JsonResponse({'error': 'email does not exist'}, status=404)
+                    return JsonResponse({'error': 'Email does not exist'}, status=404)
 
                 new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
                 request.session['otp'] = new_otp
@@ -1939,24 +2328,34 @@ class ForgotConsultantView(View):
                 request.session.save()
 
                 subject = 'Your One-Time Password (OTP) for Secure Access'
-                message = f'''Dear User,
 
-                For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+                # Plaintext fallback
+                plain_message = f'''Dear User,
 
-                OTP: {new_otp}
+For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
 
-                Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+OTP: {new_otp}
 
-                Thank you for your attention to this matter.
+Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
 
-                Best regards,
-                Collegecue
-                Support Team
-                '''
+Thank you for your attention to this matter.
+
+Best regards,
+Collegecue Support Team
+'''
+
+                # HTML version using template
+                html_message = render_to_string('login/otp_email.html', {
+                    'new_otp': new_otp
+                })
+
                 sender_email = settings.EMAIL_HOST_USER
                 recipient_email = [EMAIL]
 
-                send_mail(subject, message, sender_email, recipient_email)
+                email_msg = EmailMultiAlternatives(subject, plain_message, sender_email, recipient_email)
+                email_msg.attach_alternative(html_message, "text/html")
+                email_msg.send()
+
                 return JsonResponse({'message': 'OTP sent successfully'})
             else:
                 errors = dict(form.errors.items())
@@ -1966,6 +2365,7 @@ class ForgotConsultantView(View):
             return JsonResponse({'error': 'Invalid JSON or token'}, status=400)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class VerifyConsultantOTPView(View):
@@ -1996,6 +2396,45 @@ class VerifyConsultantOTPView(View):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class ResendConsultantOtpView(View):
+#     def get(self, request):
+#         try:
+#             csrf_token = get_token(request)
+#             if not csrf_token:
+#                 return JsonResponse({'error': 'CSRF token missing'}, status=403)
+
+#             email = request.session.get('email')
+#             if not email:
+#                 return JsonResponse({'error': 'Email not found in session'}, status=400)
+
+#             new_otp = ''.join([str(secrets.randbelow(10)) for _ in range(4)])
+#             request.session['otp'] = new_otp
+
+#             subject = 'Your One-Time Password (OTP) for Secure Access'
+#             message = f'''Dear User,
+
+#             For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+
+#             OTP: {new_otp}
+
+#             Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+
+#             Thank you for your attention to this matter.
+
+#             Best regards,
+#             Collegecue
+#             Support Team
+#             '''
+#             sender_email = settings.EMAIL_HOST_USER
+#             recipient_email = [email]
+#             send_mail(subject, message, sender_email, recipient_email)
+
+#             return JsonResponse({'message': 'New OTP sent successfully'})
+
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class ResendConsultantOtpView(View):
     def get(self, request):
@@ -2012,28 +2451,39 @@ class ResendConsultantOtpView(View):
             request.session['otp'] = new_otp
 
             subject = 'Your One-Time Password (OTP) for Secure Access'
-            message = f'''Dear User,
 
-            For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
+            # Plaintext fallback
+            plain_message = f'''Dear User,
 
-            OTP: {new_otp}
+For security purposes, please use the following One-Time Password (OTP) to complete your authentication:
 
-            Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
+OTP: {new_otp}
 
-            Thank you for your attention to this matter.
+Please enter this OTP within the next 3 minutes to ensure successful access. If you did not request this OTP, please contact our support team immediately.
 
-            Best regards,
-            Collegecue
-            Support Team
-            '''
+Thank you for your attention to this matter.
+
+Best regards,
+Collegecue Support Team
+'''
+
+            # HTML version using template
+            html_message = render_to_string('login/otp_email.html', {
+                'new_otp': new_otp
+            })
+
             sender_email = settings.EMAIL_HOST_USER
             recipient_email = [email]
-            send_mail(subject, message, sender_email, recipient_email)
+
+            email_msg = EmailMultiAlternatives(subject, plain_message, sender_email, recipient_email)
+            email_msg.attach_alternative(html_message, "text/html")
+            email_msg.send()
 
             return JsonResponse({'message': 'New OTP sent successfully'})
 
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 
 @method_decorator(csrf_exempt, name='dispatch')
