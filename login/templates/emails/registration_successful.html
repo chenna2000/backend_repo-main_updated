@@ -402,21 +402,17 @@
     <div class="header">
       <img src="https://res.cloudinary.com/dryjhjgqb/image/upload/v1746091191/lqpr0u8xlwubhxm1wx0y.png"
         alt="Collegecue Logo" class="logo">
-      <h1>Password Reset</h1>
-      <p class="header-subtitle">Your One-Time Password (OTP)</p>
+      <h1>Registration Successful</h1>
+      <p class="header-subtitle">Welcome to Collegecue!</p>
     </div>
 
     <div class="content">
-      <p class="greeting">Hello,</p>
-      <p class="message">We received a request to reset your password for your collegecue account. Please use the OTP
-        below to complete your password reset.</p>
-
-      <div class="otp-container">
-        <h3 class="otp-title">Your One-Time Password</h3>
-        <div class="otp-code">{{new_otp}}</div>
-        <p class="otp-note">This OTP is valid for the next 3 minutes. If you didn't request a password reset, please
-          ignore this email.</p>
-      </div>
+      <p class="greeting">Hello {{name}},</p>
+      <p class="message">Thank you for registering with <strong>Collegecue</strong>. Your account has been successfully
+        created with the following email address:</p>
+      <p class="message"><strong>Email:</strong> {{email}}</p>
+      <p class="message">You can now log in and start using our services. If you have any questions or need assistance,
+        feel free to contact our support team.</p>
 
       <div class="contact-info">
         <p>Need help or have questions?</p>
@@ -428,17 +424,13 @@
         </div>
       </div>
 
-      <p class="message">Thank you for being part of the Collegecue family!</p>
+      <p class="message">We’re thrilled to have you with us!</p>
     </div>
 
     <div class="footer">
-
-      <p>
-        <a href="https://www.collegecue.com/"
-          style="color: #2AB39C; font-weight: 600; text-decoration: none;">www.collegecue.com</a>
-      </p>
-
-      <p class="copyright">© 2025 Collegecue All rights reserved.</p>
+      <p><a href="https://www.collegecue.com/"
+          style="color: #2AB39C; font-weight: 600; text-decoration: none;">www.collegecue.com</a></p>
+      <p class="copyright">© 2025 Collegecue. All rights reserved.</p>
     </div>
   </div>
 </body>

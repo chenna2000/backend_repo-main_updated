@@ -88,6 +88,20 @@ class Register(View):
                 hashed_password1, agreed_to_terms, "Sheet1"
             )
 
+            html_content = render_to_string('emails/registration_successful.html', {
+                'name': user.firstname,
+                'email': user.email,
+            })
+
+            subject = 'Registration Successful - Collegecue'
+            from_email = settings.EMAIL_HOST_USER
+            to = [user.email]
+
+            email = EmailMultiAlternatives(subject, '', from_email, to)
+            email.attach_alternative(html_content, "text/html")
+            email.send()
+
+
             return JsonResponse({'message': 'Registration successful'}, status=201)
 
         except json.JSONDecodeError:
@@ -123,6 +137,21 @@ class Login(View):
             user.save()
 
             OnlineStatus.objects.filter(email=user.email).update(is_online=True)
+
+              # Render HTML email
+            html_content = render_to_string('emails/login_successful.html', {
+                    'email': user.email,
+                    'name': user.firstname,
+                })
+            
+            email_message = EmailMessage(
+                    subject='Login Successful',
+                    body=html_content,
+                    from_email=settings.EMAIL_HOST_USER,
+                    to=[user.email]
+                )
+            email_message.content_subtype = 'html'  # Important for HTML emails
+            email_message.send(fail_silently=False)
 
             return JsonResponse({
                 'message': 'Login successful',
@@ -528,20 +557,18 @@ class RegisterCompanyInChargeView(View):
                 "Sheet2"
             )
 
-            sender_email = settings.EMAIL_HOST_USER
-            recipient_email = [company.official_email]
-            subject = 'Confirmation Mail'
-            message = '''Dear User,
+            # Load HTML email content from template
+            html_content = render_to_string('emails/registration_successful.html', {
+                'name': company.company_person_name,
+                'email': company.official_email,
+            })
 
-            Thank you for your registration.
+            subject = 'Registration Successful - Collegecue'
+            from_email = settings.EMAIL_HOST_USER
+            to = [company.official_email]
 
-            If you have any questions or need further assistance, please don't hesitate to contact our support team.
-
-            Best regards,  
-            Collegecue  
-            Support Team
-            '''
-            email = EmailMessage(subject, message, sender_email, recipient_email)
+            email = EmailMultiAlternatives(subject, '', from_email, to)
+            email.attach_alternative(html_content, "text/html")
             email.send()
 
             return JsonResponse({'success': True, 'message': 'Registration successful'})
@@ -610,21 +637,23 @@ class RegisterConsultantView(View):
                 consultant.agreed_to_terms,
                 "Sheet4"
             )
-            sender_email = settings.EMAIL_HOST_USER
-            recipient_email = [consultant.official_email]
-            subject = 'Confirmation Mail'
-            message = '''Dear User,
+            
 
-            Thank you for your registration.
+            # Load HTML email content from template
+            html_content = render_to_string('emails/registration_successful.html', {
+                'name': consultant.consultant_name,
+                'email': consultant.official_email,
+            })
 
-            If you have any questions or need further assistance, please don't hesitate to contact our support team.
+            subject = 'Registration Successful - Collegecue'
+            from_email = settings.EMAIL_HOST_USER
+            to = [consultant.official_email]
 
-            Best regards,
-            Collegecue
-            Support Team
-            '''
-            email = EmailMessage(subject, message, sender_email, recipient_email)
+            email = EmailMultiAlternatives(subject, '', from_email, to)
+            email.attach_alternative(html_content, "text/html")
             email.send()
+
+
             return JsonResponse({'success': True, 'message': 'Registration successful'})
         else:
             errors = dict(form.errors.items())
@@ -695,21 +724,20 @@ class RegisterJobSeekerView(View):
                 "Sheet5",
             )
 
-            sender_email = settings.EMAIL_HOST_USER
-            recipient_email = [job_seeker.email]
-            subject = 'Confirmation Mail'
-            message = '''Dear User,
 
-            Thank you for your registration.
+            # Load HTML email content from template
+            html_content = render_to_string('emails/registration_successful.html', {
+                'name': job_seeker.first_name,
+                'email': job_seeker.email,
+            })
 
-            If you have any questions or need further assistance, please don't hesitate to contact our support team.
+            subject = 'Registration Successful - Collegecue'
+            from_email = settings.EMAIL_HOST_USER
+            to = [job_seeker.email]
 
-            Best regards,
-            Collegecue
-            Support Team
-            '''
-            email_msg = EmailMessage(subject, message, sender_email, recipient_email)
-            email_msg.send()
+            email = EmailMultiAlternatives(subject, '', from_email, to)
+            email.attach_alternative(html_content, "text/html")
+            email.send()
 
             return JsonResponse({'success': True, 'message': 'Registration successful'}, status=201)
 
@@ -825,13 +853,24 @@ class LoginCompanyInChargeView(View):
 
                 OnlineStatus.objects.filter(email=company.official_email).update(is_online=True)
 
-                send_mail(
+                
+                # Render HTML email
+                html_content = render_to_string('emails/login_successful.html', {
+                    'email': company.official_email,
+                    'name': company.company_name,
+                })
+
+                # Send HTML email
+                email_message = EmailMessage(
                     subject='Login Successful',
-                    message=f'Hello {company.official_email},\n\nYou have successfully logged in.',
+                    body=html_content,
                     from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=[company.official_email],
-                    fail_silently=False,
+                    to=[company.official_email]
                 )
+                email_message.content_subtype = 'html'  # Important for HTML emails
+                email_message.send(fail_silently=False)
+
+
                 return JsonResponse({
                     'success': True,
                     'message': f'Login successful for {company.official_email}',
@@ -871,13 +910,21 @@ class LoginUniversityInChargeView(View):
 
                 OnlineStatus.objects.filter(email=university.official_email).update(is_online=True)
 
-                send_mail(
+                # Render HTML email
+                html_content = render_to_string('emails/login_successful.html', {
+                    'email': university.official_email,
+                    'name': university.university_name,
+                })
+
+                # Send HTML email
+                email_message = EmailMessage(
                     subject='Login Successful',
-                    message=f'Hello {university.official_email},\n\nYou have successfully logged in.',
+                    body=html_content,
                     from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=[university.official_email],
-                    fail_silently=False,
+                    to=[university.official_email]
                 )
+                email_message.content_subtype = 'html'  # Important for HTML emails
+                email_message.send(fail_silently=False)
 
                 return JsonResponse({
                     'success': True,
@@ -1081,14 +1128,23 @@ class LoginJobSeekerView(View):
                 job_seeker.save()
                 
                 OnlineStatus.objects.filter(email=job_seeker.email).update(is_online=True)
+           
+                # Render HTML email
+                html_content = render_to_string('emails/login_successful.html', {
+                    'email': job_seeker.email,
+                    'name': job_seeker.first_name,
+                })
 
-                send_mail(
+                # Send HTML email
+                email_message = EmailMessage(
                     subject='Login Successful',
-                    message=f'Hello {job_seeker.email},\n\nYou have successfully logged in.',
+                    body=html_content,
                     from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=[job_seeker.email],
-                    fail_silently=False,
+                    to=[job_seeker.email]
                 )
+                email_message.content_subtype = 'html'  # Important for HTML emails
+                email_message.send(fail_silently=False)
+
                 return JsonResponse({'message': 'Login successful',
                                  'unique_token': job_seeker.token,
                                  'userid':job_seeker.id,
@@ -2776,21 +2832,38 @@ class RegisterUniversityInChargeView(View):
                 "Sheet3"
             )
 
-            sender_email = settings.EMAIL_HOST_USER
-            recipient_email = [university.official_email]
-            subject = 'Confirmation Mail'
-            message = '''Dear User,
+            # sender_email = settings.EMAIL_HOST_USER
+            # recipient_email = [university.official_email]
+            # subject = 'Confirmation Mail'
+            # message = '''Dear User,
 
-            Thank you for your registration.
+            # Thank you for your registration.
 
-            If you have any questions or need further assistance, please don't hesitate to contact our support team.
+            # If you have any questions or need further assistance, please don't hesitate to contact our support team.
 
-            Best regards,
-            Collegecue
-            Support Team
-            '''
-            email = EmailMessage(subject, message, sender_email, recipient_email)
+            # Best regards,
+            # Collegecue
+            # Support Team
+            # '''
+            # email = EmailMessage(subject, message, sender_email, recipient_email)
+            # email.send()
+
+
+             # Load HTML email content from template
+            html_content = render_to_string('emails/registration_successful.html', {
+                'name': university.university_name,
+                'email': university.official_email,
+            })
+
+            subject = 'Registration Successful - Collegecue'
+            from_email = settings.EMAIL_HOST_USER
+            to = [university.official_email]
+
+            email = EmailMultiAlternatives(subject, '', from_email, to)
+            email.attach_alternative(html_content, "text/html")
             email.send()
+
+
 
             college = None
 

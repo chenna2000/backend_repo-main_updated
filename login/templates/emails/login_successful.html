@@ -3,7 +3,8 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Successful</title>
+  <!-- KEEP YOUR EXISTING STYLE TAG HERE -->
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
@@ -402,42 +403,35 @@
     <div class="header">
       <img src="https://res.cloudinary.com/dryjhjgqb/image/upload/v1746091191/lqpr0u8xlwubhxm1wx0y.png"
         alt="Collegecue Logo" class="logo">
-      <h1>Password Reset</h1>
-      <p class="header-subtitle">Your One-Time Password (OTP)</p>
+      <h1>Login Successful</h1>
+      <p class="header-subtitle">You have successfully logged into your account</p>
     </div>
 
     <div class="content">
-      <p class="greeting">Hello,</p>
-      <p class="message">We received a request to reset your password for your collegecue account. Please use the OTP
-        below to complete your password reset.</p>
+      <p class="greeting">Hello {{name}},</p>
+      <p class="message">
+        This is to inform you that you have successfully logged into your <strong>Collegecue</strong> account with the
+        email <strong>{{email}}</strong>.
+      <p class="message"><strong>**If this wasn't you, please contact support immediately. </strong></p>
+      </p>
 
-      <div class="otp-container">
-        <h3 class="otp-title">Your One-Time Password</h3>
-        <div class="otp-code">{{new_otp}}</div>
-        <p class="otp-note">This OTP is valid for the next 3 minutes. If you didn't request a password reset, please
-          ignore this email.</p>
-      </div>
+
 
       <div class="contact-info">
         <p>Need help or have questions?</p>
         <div class="contact-buttons">
           <a href="tel:9647919906" class="contact-button">📞 Call Us</a>
           <a href="https://wa.me/9647919906" class="contact-button whatsapp-button">💬 WhatsApp Us</a>
-          <a href="https://www.collegecue.com/" class="contact-button website-button">
-            🌐 Visit Website</a>
+          <a href="https://www.collegecue.com/" class="contact-button website-button"> 🌐 Visit Website</a>
         </div>
       </div>
 
-      <p class="message">Thank you for being part of the Collegecue family!</p>
+      <p class="message">Thank you for choosing Collegecue!</p>
     </div>
 
     <div class="footer">
-
-      <p>
-        <a href="https://www.collegecue.com/"
-          style="color: #2AB39C; font-weight: 600; text-decoration: none;">www.collegecue.com</a>
-      </p>
-
+      <p><a href="https://www.collegecue.com/"
+          style="color: #2AB39C; font-weight: 600; text-decoration: none;">www.collegecue.com</a></p>
       <p class="copyright">© 2025 Collegecue All rights reserved.</p>
     </div>
   </div>
